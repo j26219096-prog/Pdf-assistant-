@@ -1,28 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PDF Q&A Assistant</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 50px; }
-        input, button { padding: 10px; margin: 5px; }
-        #answer { margin-top: 20px; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Q&A Assistant</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #0f3460;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+      width: 400px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    input[type="file"], 
+    input[type="text"] {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+    button {
+      background: #21e6c1;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #1abc9c;
+    }
+    #answer {
+      margin-top: 15px;
+      background: #1a1a2e;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 14px;
+      min-height: 50px;
+    }
+  </style>
 </head>
 <body>
-    <h1>PDF Q&A Assistant</h1>
+  <div class="container">
+    <h1>📄 PDF Q&A Assistant</h1>
 
     <!-- Upload PDF -->
-    <form method="POST" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="pdf" accept=".pdf">
-        <button type="submit">Upload PDF</button>
+    <form id="uploadForm">
+      <input type="file" name="pdf" id="pdfFile" accept=".pdf" required>
+      <button type="submit">Upload PDF</button>
     </form>
 
-    <!-- Ask question -->
-    <form method="POST" action="/ask">
-        <input type="text" name="question" placeholder="Ask a question about the PDF" size="50">
-        <button type="submit">Ask</button>
+    <!-- Ask Question -->
+    <form id="askForm">
+      <input type="text" name="question" id="question" placeholder="Ask a question about the PDF..." required>
+      <button type="submit">Ask</button>
     </form>
 
-    <div id="answer">{{ answer|safe }}</div>
+    <!-- Answer Display -->
+    <div id="answer"></div>
+  </div>
+
+  <script>
+    // Upload PDF via AJAX
+    document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("pdf", document.getElementById("pdfFile").files[0]);
+
+      let res = await fetch("/upload", { method: "POST", body: formData });
+      let text = await res.text();
+      document.getElementById("answer").innerText = text;
+    });
+
+    // Ask Question via AJAX
+    document.getElementById("askForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("question", document.getElementById("question").value);
+
+      let res = await fetch("/ask", { method: "POST", body: formData });
+      let text = await res.text();
+      document.getElementById("answer").innerText = text;
+    });
+  </script>
 </body>
 </html>
