@@ -6,103 +6,106 @@
   <title>PDF Q&A Assistant</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      color: #fff;
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
     .container {
-      background: #0f3460;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
       width: 400px;
-      text-align: center;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    h1 {
-      margin-bottom: 20px;
-      font-size: 24px;
-    }
-    input[type="file"], 
-    input[type="text"] {
-      width: 90%;
+    input, button {
+      width: 100%;
       padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      outline: none;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
     }
     button {
-      background: #21e6c1;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      background: #007bff;
+      color: white;
       cursor: pointer;
-      transition: 0.3s;
     }
     button:hover {
-      background: #1abc9c;
+      background: #0056b3;
     }
     #answer {
-      margin-top: 15px;
-      background: #1a1a2e;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: left;
-      font-size: 14px;
+      margin-top: 10px;
+      padding: 10px;
+      background: #f1f1f1;
+      border-radius: 5px;
       min-height: 50px;
+    }
+    #warning {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📄 PDF Q&A Assistant</h1>
-
-    <!-- Upload PDF -->
-    <form id="uploadForm">
-      <input type="file" name="pdf" id="pdfFile" accept=".pdf" required>
-      <button type="submit">Upload PDF</button>
-    </form>
-
-    <!-- Ask Question -->
-    <form id="askForm">
-      <input type="text" name="question" id="question" placeholder="Ask a question about the PDF..." required>
-      <button type="submit">Ask</button>
-    </form>
-
-    <!-- Answer Display -->
-    <div id="answer"></div>
+    <h2>PDF Q&A Assistant</h2>
+    <input type="file" id="pdfFile" accept="application/pdf">
+    <p id="warning">⚠️ This PDF may be too large, results might be incomplete.</p>
+    <input type="text" id="question" placeholder="Ask a question">
+    <button onclick="askQuestion()">Ask</button>
+    <div id="answer">Answer will appear here...</div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
   <script>
-    // Upload PDF via AJAX
-    document.getElementById("uploadForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("pdf", document.getElementById("pdfFile").files[0]);
+    let pdfText = "";
 
-      let res = await fetch("/upload", { method: "POST", body: formData });
-      let text = await res.text();
-      document.getElementById("answer").innerText = text;
+    document.getElementById("pdfFile").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Warn if file is bigger than 1MB
+        if (file.size > 1 * 1024 * 1024) {
+          document.getElementById("warning").style.display = "block";
+        } else {
+          document.getElementById("warning").style.display = "none";
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function() {
+          const typedarray = new Uint8Array(this.result);
+          const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+          pdfText = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const text = content.items.map(item => item.str).join(" ");
+            pdfText += text + "\n";
+          }
+
+          // Warn if PDF has more than 10 pages
+          if (pdf.numPages > 10) {
+            document.getElementById("warning").style.display = "block";
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
     });
 
-    // Ask Question via AJAX
-    document.getElementById("askForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append("question", document.getElementById("question").value);
-
-      let res = await fetch("/ask", { method: "POST", body: formData });
-      let text = await res.text();
-      document.getElementById("answer").innerText = text;
-    });
+    async function askQuestion() {
+      const question = document.getElementById("question").value;
+      const res = await fetch("/ask", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ question: question, pdf_text: pdfText })
+      });
+      const data = await res.json();
+      document.getElementById("answer").innerText = data.answer;
+    }
   </script>
 </body>
 </html>
