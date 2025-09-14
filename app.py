@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request
 import os
 import PyPDF2
-from openai import OpenAI
+from groq import Groq
 
 app = Flask(__name__)
 
-# Create OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Groq client (set your API key in Render → Environment Variables → GROQ_API_KEY)
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 pdf_text = ""  # Store PDF text in memory
 
@@ -43,7 +43,7 @@ def ask():
 
     try:
         response = client.chat.completions.create(
-            model="gpt-5-nano",   # or gpt-4 if you have access
+            model="llama3-8b-8192",   # free LLaMA-3 model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that answers questions based on the given PDF text."},
                 {"role": "user", "content": f"PDF Content:\n{pdf_text}\n\nQuestion: {user_question}"}
