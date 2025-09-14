@@ -43,7 +43,7 @@ def ask():
 
     try:
         response = client.chat.completions.create(
-            model="llama3-8b-8192",   # free LLaMA-3 model
+            model="llama-3.1-8b-instant",   # free LLaMA-3 model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that answers questions based on the given PDF text."},
                 {"role": "user", "content": f"PDF Content:\n{pdf_text}\n\nQuestion: {user_question}"}
