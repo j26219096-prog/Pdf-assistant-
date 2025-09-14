@@ -1,51 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF Q&A Assistant</title>
-<style>
-    body { font-family: Arial; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; padding: 40px; }
-    h1 { color: #333; }
-    form { background: #fff; padding: 25px; border-radius: 12px; display: flex; flex-direction: column; width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    input, button { margin: 10px 0; padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #45a049; }
-    .answer, .error { margin-top: 20px; padding: 20px; background: #fff; border-radius: 10px; max-width: 600px; word-wrap: break-word; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .error { color: red; }
-    #loading { display: none; margin-top: 10px; }
-</style>
+    <title>PDF Q&A Assistant</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; }
+        input, button { padding: 10px; margin: 5px; }
+        #answer { margin-top: 20px; font-weight: bold; }
+    </style>
 </head>
 <body>
-<h1>PDF Q&A Assistant</h1>
+    <h1>PDF Q&A Assistant</h1>
 
-<form id="pdfForm" method="POST" enctype="multipart/form-data">
-    <input type="file" name="pdf" accept=".pdf" required>
-    <input type="text" name="question" placeholder="Ask a question about the PDF" required>
-    <button type="submit">Ask</button>
-    <div id="loading">Processing PDF, please wait...</div>
-</form>
+    <!-- Upload PDF -->
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="pdf" accept=".pdf">
+        <button type="submit">Upload PDF</button>
+    </form>
 
-{% if error %}
-<div class="error"><strong>Error:</strong> {{ error }}</div>
-{% endif %}
+    <!-- Ask question -->
+    <form method="POST" action="/ask">
+        <input type="text" name="question" placeholder="Ask a question about the PDF" size="50">
+        <button type="submit">Ask</button>
+    </form>
 
-{% if answer %}
-<div class="answer">
-    <h2>Answer:</h2>
-    <p>{{ answer }}</p>
-</div>
-{% endif %}
-
-<script>
-// Show loading text when submitting the form
-const form = document.getElementById('pdfForm');
-const loading = document.getElementById('loading');
-
-form.addEventListener('submit', () => {
-    loading.style.display = 'block';
-});
-</script>
-
+    <div id="answer">{{ answer|safe }}</div>
 </body>
 </html>
