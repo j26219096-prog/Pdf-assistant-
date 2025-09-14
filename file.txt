@@ -1,3 +1,4 @@
 Flask
 groq
 PyPDF2
+gunicorn
